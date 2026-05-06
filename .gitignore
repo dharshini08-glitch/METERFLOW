@@ -1,0 +1,16 @@
+# Ignore environment files
+backend/.env
+
+# Node modules
+node_modules/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Build outputs
+dist/
+build/
