@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import AppShell, { PageHeader } from "../components/AppShell";
 import { api } from "../lib/api";
 import { Button } from "../components/ui/button";
@@ -15,11 +15,16 @@ const statusColor = (s) => {
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [apis, setApis] = useState([]);
+  const apisRef = useRef(apis);
   const [apiFilter, setApiFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  useEffect(() => {
+    apisRef.current = apis;
+  }, [apis]);
+
+  const load = useCallback(async () => {
     setLoading(true);
     const params = { limit: 200 };
     if (apiFilter !== "all") params.api_id = apiFilter;
@@ -27,12 +32,18 @@ export default function Logs() {
     try {
       const [l, a] = await Promise.all([
         api.get("/stats/logs", { params }),
-        apis.length ? Promise.resolve({ data: apis }) : api.get("/apis"),
+        apisRef.current.length ? Promise.resolve({ data: apisRef.current }) : api.get("/apis"),
       ]);
-      setLogs(l.data); setApis(a.data);
-    } finally { setLoading(false); }
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [apiFilter, statusFilter]);
+      setLogs(l.data);
+      setApis(a.data);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiFilter, statusFilter]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <AppShell>
